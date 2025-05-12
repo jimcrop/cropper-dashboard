@@ -1,38 +1,52 @@
-// File: pages/api/govtribe-feed.ts
+// File: components/GovTribeFeed.tsx
+import { useEffect, useState } from 'react';
 
-export const config = {
-  runtime: 'nodejs',
+type Opp = {
+  title: string;
+  url: string;
+  agency: string;
+  naics: string;
+  posted_date: string;
+  due_date: string;
+  gov_summary: string;
+  ai_summary: string;
 };
 
-import fs from 'fs';
-import path from 'path';
-import type { NextApiRequest, NextApiResponse } from 'next';
+export default function GovTribeFeed() {
+  const [opps, setOpps] = useState<Opp[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const DATA_FILE = path.join(process.cwd(), 'data/govtribe.json');
-
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    const body = req.body;
-    const wrap = Array.isArray(body) ? body : [body];
-    try {
-      fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
-      fs.writeFileSync(DATA_FILE, JSON.stringify(wrap, null, 2));
-      return res.status(200).json({ success: true });
-    } catch (err) {
-      console.error('File write error:', err);
-      return res.status(500).json({ error: 'Failed to write file' });
+  useEffect(() => {
+    async function fetchData() {
+      const res = await fetch('/api/govtribe-feed');
+      const data = await res.json();
+      setOpps(data);
+      setLoading(false);
     }
-  }
+    fetchData();
+  }, []);
 
-  if (req.method === 'GET') {
-    try {
-      const file = fs.readFileSync(DATA_FILE, 'utf-8');
-      return res.status(200).json(JSON.parse(file));
-    } catch (err) {
-      return res.status(200).json([]); // default to empty array if file not found
-    }
-  }
+  if (loading) return <p>Loading GovTribe feed...</p>;
+  if (!opps.length) return <p>No opportunities available.</p>;
 
-  res.setHeader('Allow', ['GET', 'POST']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold">GovTribe BD Feed</h2>
+      {opps.map((opp, idx) => (
+        <div key={idx} className="p-4 rounded-lg bg-white shadow">
+          <h3 className="text-xl font-bold text-blue-700">
+            <a href={opp.url} target="_blank" rel="noopener noreferrer">
+              {opp.title}
+            </a>
+          </h3>
+          <p className="text-sm text-gray-500">Agency: {opp.agency}</p>
+          <p className="text-sm text-gray-500">NAICS: {opp.naics}</p>
+          <p className="text-sm text-gray-500">Posted: {opp.posted_date}</p>
+          <p className="text-sm text-gray-500">Due: {opp.due_date}</p>
+          <p className="mt-2"><strong>Gov Summary:</strong> {opp.gov_summary}</p>
+          <p className="mt-1"><strong>AI Summary:</strong> {opp.ai_summary}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
