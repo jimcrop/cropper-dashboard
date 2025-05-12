@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
 
-const DATA_FILE = path.join('/tmp', 'govtribe.json');
+const DATA_FILE = path.join(process.cwd(), 'data', 'govtribe.json');
 
 export const config = {
   api: {
@@ -16,8 +16,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     const body = req.body;
     const wrap = Array.isArray(body) ? body : [body];
     try {
+      fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
       fs.writeFileSync(DATA_FILE, JSON.stringify(wrap, null, 2));
-      return res.status(200).json({ success: true });
+      return res.status(200).json({ success: true, count: wrap.length });
     } catch (err) {
       console.error('File write error:', err);
       return res.status(500).json({ error: 'Failed to write file' });
@@ -27,9 +28,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       const file = fs.readFileSync(DATA_FILE, 'utf-8');
-      return res.status(200).json(JSON.parse(file));
+      const data = JSON.parse(file);
+      return res.status(200).json(data);
     } catch (err) {
-      return res.status(200).json([]); // return empty array if file not found
+      console.error('File read error:', err);
+      return res.status(200).json([]); // empty array if file missing
     }
   }
 
