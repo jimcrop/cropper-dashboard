@@ -24,10 +24,33 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         existingData = [];
       }
 
+      // Merge new items only if they are not duplicates
       const merged = [...wrap, ...existingData.filter(e => !wrap.some(w => w.id === e.id))];
+
+      // Add enriched defaults if not present
+      const enriched = merged.map((item: any) => ({
+        ...item,
+        pwin: item.pwin ?? Math.floor(Math.random() * 100),
+        gates: item.gates ?? {
+          gate1: false,
+          gate2: false,
+          gate3: false,
+          gate4: false,
+        },
+        vehicle: item.vehicle ?? 'TBD',
+        proposal_status: item.proposal_status ?? 'Not Started',
+        grant_applicable: item.grant_applicable ?? false,
+      }));
+
+      // Sort by due_date descending
+      enriched.sort((a, b) => new Date(b.due_date).getTime() - new Date(a.due_date).getTime());
+
+      // Trim to latest 10
+      const trimmed = enriched.slice(0, 10);
+
       fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
-      fs.writeFileSync(DATA_FILE, JSON.stringify(merged, null, 2));
-      return res.status(200).json({ success: true, count: merged.length });
+      fs.writeFileSync(DATA_FILE, JSON.stringify(trimmed, null, 2));
+      return res.status(200).json({ success: true, count: trimmed.length });
     } catch (err) {
       console.error('File write error:', err);
       return res.status(500).json({ error: 'Failed to write file', details: err instanceof Error ? err.message : err });
@@ -39,19 +62,18 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       const file = fs.readFileSync(DATA_FILE, 'utf-8');
       const data = JSON.parse(file);
 
-      // Sort and Shipley-augment
       const enriched = data.map((item: any) => ({
         ...item,
-        pwin: item.pwin || Math.floor(Math.random() * 100),
-        gates: item.gates || {
+        pwin: item.pwin ?? Math.floor(Math.random() * 100),
+        gates: item.gates ?? {
           gate1: false,
           gate2: false,
           gate3: false,
           gate4: false,
         },
-        vehicle: item.vehicle || 'TBD',
-        proposal_status: item.proposal_status || 'Not Started',
-        grant_applicable: item.grant_applicable || false,
+        vehicle: item.vehicle ?? 'TBD',
+        proposal_status: item.proposal_status ?? 'Not Started',
+        grant_applicable: item.grant_applicable ?? false,
       }));
 
       return res.status(200).json(enriched);
