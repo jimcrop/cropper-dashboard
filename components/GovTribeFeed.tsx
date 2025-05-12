@@ -1,8 +1,29 @@
 // File: components/GovTribeFeed.tsx
 import React, { useEffect, useState } from 'react';
 
+type Opp = {
+  title: string;
+  url: string;
+  agency: string;
+  naics: string;
+  posted_date: string;
+  due_date: string;
+  gov_summary: string;
+  ai_summary: string;
+  pwin: number;
+  vehicle: string;
+  proposal_status: string;
+  grant_applicable: boolean;
+  gates: {
+    gate1: boolean;
+    gate2: boolean;
+    gate3: boolean;
+    gate4: boolean;
+  };
+};
+
 export default function GovTribeFeed() {
-  const [opps, setOpps] = useState<any[]>([]);
+  const [opps, setOpps] = useState<Opp[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,6 +54,7 @@ export default function GovTribeFeed() {
           </h3>
           <p className="text-sm text-gray-500">Agency: {opp.agency}</p>
           <p className="text-sm text-gray-500">NAICS: {opp.naics}</p>
+          <p className="text-sm text-gray-500">Posted: {opp.posted_date}</p>
           <p className="text-sm text-gray-500">Due: {opp.due_date}</p>
           <p className="text-sm"><strong>PWIN:</strong> {opp.pwin}%</p>
           <p className="text-sm"><strong>Vehicle:</strong> {opp.vehicle}</p>
@@ -47,6 +69,8 @@ export default function GovTribeFeed() {
               <li>Gate 4: {opp.gates.gate4 ? '✅' : '❌'}</li>
             </ul>
           </div>
+          <p className="mt-2"><strong>Gov Summary:</strong> {opp.gov_summary}</p>
+          <p className="mt-1"><strong>AI Summary:</strong> {opp.ai_summary}</p>
         </div>
       ))}
     </div>
