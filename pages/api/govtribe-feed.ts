@@ -11,6 +11,15 @@ export const config = {
   },
 };
 
+function simulatePWIN(item: any): number {
+  let score = 0;
+  if (/Air Force|Army|Navy|DoD/i.test(item.agency)) score += 30;
+  if (/54[0-9]{3}/.test(item.naics)) score += 25;
+  if (item.due_date && new Date(item.due_date) > new Date()) score += 20;
+  if (item.title && /cloud|AI|cyber/i.test(item.title)) score += 25;
+  return Math.min(score, 100);
+}
+
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const body = req.body;
@@ -24,13 +33,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         existingData = [];
       }
 
-      // Merge new items only if they are not duplicates
       const merged = [...wrap, ...existingData.filter(e => !wrap.some(w => w.id === e.id))];
 
-      // Add enriched defaults if not present
       const enriched = merged.map((item: any) => ({
         ...item,
-        pwin: item.pwin ?? Math.floor(Math.random() * 100),
+        pwin: item.pwin ?? simulatePWIN(item),
         gates: item.gates ?? {
           gate1: false,
           gate2: false,
@@ -42,10 +49,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         grant_applicable: item.grant_applicable ?? false,
       }));
 
-      // Sort by due_date descending
       enriched.sort((a, b) => new Date(b.due_date).getTime() - new Date(a.due_date).getTime());
-
-      // Trim to latest 10
       const trimmed = enriched.slice(0, 10);
 
       fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
@@ -64,7 +68,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const enriched = data.map((item: any) => ({
         ...item,
-        pwin: item.pwin ?? Math.floor(Math.random() * 100),
+        pwin: item.pwin ?? simulatePWIN(item),
         gates: item.gates ?? {
           gate1: false,
           gate2: false,
@@ -79,7 +83,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(200).json(enriched);
     } catch (err) {
       console.error('Read error:', err);
-      return res.status(200).json([]); // return empty array if file not found
+      return res.status(200).json([]);
     }
   }
 
