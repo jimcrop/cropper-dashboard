@@ -13,10 +13,10 @@ export const config = {
 
 function simulatePWIN(item: any): number {
   let score = 0;
-  if (/Air Force|Army|Navy|DoD/i.test(item.agency)) score += 30;
-  if (/54[0-9]{3}/.test(item.naics)) score += 25;
+  if (/Air Force|Army|Navy|DoD|DARPA|GSA/i.test(item.agency)) score += 30;
+  if (/5415[0-9]{2}/.test(item.naics)) score += 25;
   if (item.due_date && new Date(item.due_date) > new Date()) score += 20;
-  if (item.title && /cloud|AI|cyber/i.test(item.title)) score += 25;
+  if (item.title && /cloud|AI|cyber|data|model/i.test(item.title)) score += 25;
   return Math.min(score, 100);
 }
 
@@ -46,7 +46,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         },
         vehicle: item.vehicle ?? 'TBD',
         proposal_status: item.proposal_status ?? 'Not Started',
-        grant_applicable: item.grant_applicable ?? false,
+        grant_applicable: false,
+        source_links: item.source_links ?? [],
+        forecast_status: item.forecast_status ?? 'Unknown',
+        submission_mode: item.submission_mode ?? 'Electronic',
       }));
 
       enriched.sort((a, b) => new Date(b.due_date).getTime() - new Date(a.due_date).getTime());
@@ -64,7 +67,13 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       const file = fs.readFileSync(DATA_FILE, 'utf-8');
-      const data = JSON.parse(file);
+      let data = [];
+      try {
+        data = JSON.parse(file);
+      } catch (err) {
+        console.error('JSON parse error:', err);
+        return res.status(200).json([]);
+      }
 
       const enriched = data.map((item: any) => ({
         ...item,
@@ -77,9 +86,13 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         },
         vehicle: item.vehicle ?? 'TBD',
         proposal_status: item.proposal_status ?? 'Not Started',
-        grant_applicable: item.grant_applicable ?? false,
+        grant_applicable: false,
+        source_links: item.source_links ?? [],
+        forecast_status: item.forecast_status ?? 'Unknown',
+        submission_mode: item.submission_mode ?? 'Electronic',
       }));
 
+      console.log('Fetched data from file:', enriched);
       return res.status(200).json(enriched);
     } catch (err) {
       console.error('Read error:', err);
