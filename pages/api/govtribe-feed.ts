@@ -1,21 +1,20 @@
 // File: pages/api/govtribe-feed.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
-import type { NextApiRequest, NextApiResponse } from 'next';
 
-const DATA_FILE = path.join(process.cwd(), 'data/govtribe.json');
+const DATA_FILE = path.join(process.cwd(), 'data', 'govtribe.json');
+
+export const config = {
+  api: {
+    bodyParser: true,
+  },
+};
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    let body = req.body;
-
-    // ✅ UNWRAP in case Zapier wraps the payload
-    if (Array.isArray(body) && body.length === 1 && body[0]?.wrap) {
-      body = body[0].wrap;
-    }
-
+    const body = req.body;
     const wrap = Array.isArray(body) ? body : [body];
-
     try {
       fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
       fs.writeFileSync(DATA_FILE, JSON.stringify(wrap, null, 2));
@@ -31,7 +30,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       const file = fs.readFileSync(DATA_FILE, 'utf-8');
       return res.status(200).json(JSON.parse(file));
     } catch (err) {
-      return res.status(200).json([]); // default to empty array
+      return res.status(200).json([]); // return empty array if file not found
     }
   }
 
