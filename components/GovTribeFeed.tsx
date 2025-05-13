@@ -1,7 +1,7 @@
 // File: components/GovTribeFeed.tsx
 
 import React from 'react';
-import opportunities from '../data/cropper_demo_opportunities_with_summary.json';
+import opportunities from '../data/cropper_demo_opportunities_enriched.json';
 
 export default function GovTribeFeed() {
   if (!opportunities || opportunities.length === 0) {
@@ -33,6 +33,21 @@ export default function GovTribeFeed() {
           <div className="text-sm text-gray-700 mt-2">
             <strong>Summary:</strong>
             <p>{opp["AI Summary"]}</p>
+          </div>
+
+          <div className="mt-4 pt-3 border-t">
+            <h4 className="text-sm font-semibold text-gray-700">BD Intelligence</h4>
+            <ul className="text-sm text-gray-600 space-y-1 mt-1">
+              <li><strong>Gate Reviews:</strong> 
+                Gate 1: {opp["Gate Reviews"]["Gate 1"] ? 'Pass' : 'Fail'}, 
+                Gate 2: {opp["Gate Reviews"]["Gate 2"] ? 'Pass' : 'Fail'}, 
+                Gate 3: {opp["Gate Reviews"]["Gate 3"] ? 'Pass' : 'Fail'}, 
+                Gate 4: {opp["Gate Reviews"]["Gate 4"] ? 'Pass' : 'Fail'}
+              </li>
+              <li><strong>BD Stage:</strong> {opp["BD Stage"]}</li>
+              <li><strong>Vehicle Fit:</strong> {opp["Vehicle Fit"]}</li>
+              <li><strong>Recommended Teammate:</strong> {opp["Recommended Teammate"]}</li>
+            </ul>
           </div>
         </div>
       ))}
