@@ -27,4 +27,15 @@ export default function GovTribeFeed() {
           <p className="text-sm text-gray-500">Location: {opp["Location"]}</p>
 
           <p className="text-sm font-medium text-black">
-            Score: {opp["Score"]} ({opp["AI Recommendati]()
+            Score: {opp["Score"]} ({opp["AI Recommendation"]})
+          </p>
+
+          <div className="text-sm text-gray-700 mt-2">
+            <strong>Summary:</strong>
+            <p>{opp["Summary"]}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
