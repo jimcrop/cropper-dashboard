@@ -1,7 +1,7 @@
 // File: components/GovTribeFeed.tsx
 
 import React from 'react';
-import opportunities from '../data/cropper_demo_opportunities.json';
+import opportunities from '../data/cropper_demo_opportunities_with_summary.json';
 
 export default function GovTribeFeed() {
   if (!opportunities || opportunities.length === 0) {
@@ -32,7 +32,7 @@ export default function GovTribeFeed() {
 
           <div className="text-sm text-gray-700 mt-2">
             <strong>Summary:</strong>
-            <p>{opp["Summary"]}</p>
+            <p>{opp["AI Summary"]}</p>
           </div>
         </div>
       ))}
